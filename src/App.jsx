@@ -1,156 +1,186 @@
-
 import { useState } from "react";
+
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+
+import Home from "./pages/Home";
+import LyricsPage from "./pages/LyricsPage";
+import AuthPage from "./pages/AuthPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboard from "./pages/UserDashboard";
+
 import "./App.css";
 
-function App() {
+export default function App() {
   const [page, setPage] = useState("home");
+
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("user")) || null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [token, setToken] = useState(
+    () => sessionStorage.getItem("token") || ""
+  );
+
+  const [selectedSong, setSelectedSong] = useState(null);
+
+  const isAdmin =
+    user?.role === "ADMIN" || user?.role === "ROLE_ADMIN";
+
+  function navigate(nextPage) {
+    setPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function handleLogin(data) {
+    const loggedInUser = data.user || {
+      name: data.name,
+      email: data.email,
+      role: data.role || "USER",
+    };
+
+    const accessToken = data.token || data.accessToken || "";
+
+    setUser(loggedInUser);
+    setToken(accessToken);
+
+    sessionStorage.setItem("user", JSON.stringify(loggedInUser));
+    sessionStorage.setItem("token", accessToken);
+
+    navigate(
+      loggedInUser.role === "ADMIN" ||
+      loggedInUser.role === "ROLE_ADMIN"
+        ? "admin"
+        : "user"
+    );
+  }
+
+  function handleLogout() {
+    setUser(null);
+    setToken("");
+    setSelectedSong(null);
+
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+
+    navigate("home");
+  }
+
+  function openLyrics(song) {
+    setSelectedSong(song);
+    navigate("lyrics");
+  }
+
+  function renderPage() {
+    switch (page) {
+      case "login":
+      case "register":
+        return (
+          <AuthPage
+            key={page}
+            mode={page}
+            navigate={navigate}
+            onLogin={handleLogin}
+          />
+        );
+
+      case "forgot":
+        return <ForgotPassword navigate={navigate} />;
+
+      case "lyrics":
+        return (
+          <LyricsPage
+            song={selectedSong}
+            navigate={navigate}
+          />
+        );
+
+      case "user":
+        if (!user) {
+          return (
+            <AuthPage
+              mode="login"
+              navigate={navigate}
+              onLogin={handleLogin}
+            />
+          );
+        }
+
+        if (isAdmin) {
+          return (
+            <AdminDashboard
+              token={token}
+              navigate={navigate}
+            />
+          );
+        }
+
+        return (
+          <UserDashboard
+            user={user}
+            navigate={navigate}
+            onOpenLyrics={openLyrics}
+          />
+        );
+
+      case "admin":
+        if (!user) {
+          return (
+            <AuthPage
+              mode="login"
+              navigate={navigate}
+              onLogin={handleLogin}
+            />
+          );
+        }
+
+        if (!isAdmin) {
+          return (
+            <UserDashboard
+              user={user}
+              navigate={navigate}
+              onOpenLyrics={openLyrics}
+            />
+          );
+        }
+
+        return (
+          <AdminDashboard
+            token={token}
+            navigate={navigate}
+          />
+        );
+
+      default:
+        return (
+          <Home
+            navigate={navigate}
+            onOpenLyrics={openLyrics}
+          />
+        );
+    }
+  }
 
   return (
     <div className="app">
-      <header className="navbar">
-        <a className="logo" href="#" onClick={() => setPage("home")}>
-          <span className="music-icon">♫</span>
-          LyricsVerse
-        </a>
+      <Navbar
+        user={user}
+        isAdmin={isAdmin}
+        navigate={navigate}
+        onLogout={handleLogout}
+      />
 
-        <nav>
-          <button className="nav-login" onClick={() => setPage("login")}>
-            Login
-          </button>
-          <button className="nav-register" onClick={() => setPage("register")}>
-            Register
-          </button>
-        </nav>
-      </header>
+      <main>{renderPage()}</main>
 
-      <main>
-        {page === "home" && (
-          <section className="hero">
-            <div className="hero-badge">YOUR MUSIC, YOUR LANGUAGE</div>
-
-            <h1>
-              Every song has a story.
-              <br />
-              <span>Find yours here.</span>
-            </h1>
-
-            <p className="hero-description">
-              Discover song lyrics in Telugu, Hindi, English and more.
-              Search, read and feel the music.
-            </p>
-
-            <div className="search-box">
-              <span>⌕</span>
-              <input placeholder="Search for a song..." />
-              <button onClick={() => setPage("login")}>Search</button>
-            </div>
-
-            <div className="hero-actions">
-              <button
-                className="primary-button"
-                onClick={() => setPage("login")}
-              >
-                Explore Lyrics →
-              </button>
-              <button
-                className="secondary-button"
-                onClick={() => setPage("register")}
-              >
-                Create Account
-              </button>
-            </div>
-
-            <div className="language-section">
-              <p>EXPLORE BY LANGUAGE</p>
-              <div className="language-list">
-                <span>తెలుగు · Telugu</span>
-                <span>हिन्दी · Hindi</span>
-                <span>English</span>
-              </div>
-            </div>
-
-            <div className="hero-note">♫ &nbsp; Find. Read. Feel the Music.</div>
-          </section>
-        )}
-
-        {page === "login" && (
-          <section className="auth-card">
-            <div className="auth-symbol">♫</div>
-            <h2>Welcome Back</h2>
-            <p>Sign in to explore your favourite lyrics.</p>
-
-            <form onSubmit={(e) => e.preventDefault()}>
-              <label>Email</label>
-              <input type="email" placeholder="you@example.com" required />
-
-              <label>Password</label>
-              <input type="password" placeholder="Enter password" required />
-
-              <button className="primary-button" type="submit">
-                Login
-              </button>
-            </form>
-
-            <p>
-              Don't have an account?{" "}
-              <button className="text-button" onClick={() => setPage("register")}>
-                Register
-              </button>
-            </p>
-
-            <button className="back-button" onClick={() => setPage("home")}>
-              ← Back to Home
-            </button>
-          </section>
-        )}
-
-        {page === "register" && (
-          <section className="auth-card">
-            <div className="auth-symbol">♫</div>
-            <h2>Create Account</h2>
-            <p>Join LyricsVerse and explore the world of music.</p>
-
-            <form onSubmit={(e) => e.preventDefault()}>
-              <label>Full Name</label>
-              <input type="text" placeholder="Your name" required />
-
-              <label>Email</label>
-              <input type="email" placeholder="you@example.com" required />
-
-              <label>Password</label>
-              <input
-                type="password"
-                placeholder="Create a password"
-                minLength="8"
-                required
-              />
-
-              <button className="primary-button" type="submit">
-                Register
-              </button>
-            </form>
-
-            <p>
-              Already registered?{" "}
-              <button className="text-button" onClick={() => setPage("login")}>
-                Login
-              </button>
-            </p>
-
-            <button className="back-button" onClick={() => setPage("home")}>
-              ← Back to Home
-            </button>
-          </section>
-        )}
-      </main>
-
-      <footer>
-        <span>♫ LyricsVerse</span>
-        <span>Made for the love of music.</span>
-        <span>Telugu · Hindi · English</span>
-      </footer>
+      <Footer />
     </div>
   );
 }
 
-export default App;
+
+

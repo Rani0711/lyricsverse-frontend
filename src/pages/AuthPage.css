@@ -1,0 +1,175 @@
+.auth-layout {
+  padding: 50px 18px 75px;
+}
+
+.auth-card {
+  width: min(460px, 100%);
+  margin: auto;
+  padding: clamp(25px, 5vw, 40px);
+  border: 1px solid #e9e0f3;
+  border-radius: 25px;
+  background: white;
+  box-shadow: 0 15px 50px #462a6e12;
+}
+
+.auth-logo {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 19px;
+  background: #f2ebff;
+  color: #8155d9;
+  font-size: 36px;
+}
+
+.auth-kicker {
+  color: #8155c7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-align: center;
+}
+
+.auth-card h1 {
+  margin: 10px 0;
+  color: #302344;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(27px, 5vw, 33px);
+  text-align: center;
+}
+
+.auth-description {
+  margin: 0 auto 25px;
+  color: #81748f;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-form label {
+  margin-top: 6px;
+  color: #493b58;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid #e2d8ee;
+  border-radius: 11px;
+  background: #fdfbff;
+  color: #302344;
+  font-size: 14px;
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  padding-right: 65px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: #7044c5;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.forgot-row button {
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: #7044c5;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.button-primary {
+  padding: 13px 21px;
+  border: 1px solid #7044c5;
+  border-radius: 11px;
+  background: #7044c5;
+  color: white;
+  font-weight: 600;
+}
+
+.button-primary:hover {
+  background: #543092;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.auth-form .button-primary {
+  margin-top: 8px;
+}
+
+.error-message,
+.success-message {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.error-message {
+  color: #b42318;
+}
+
+.success-message {
+  color: #19734a;
+}
+
+.auth-switch {
+  margin: 23px 0 12px;
+  color: #81748f;
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-switch button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7044c5;
+  font-weight: 700;
+}
+
+.back-link {
+  border: 0;
+  background: transparent;
+  color: #7044c5;
+  font-weight: 700;
+}
+
+.centered {
+  display: block;
+  margin: 15px auto 0;
+}
+
+@media (max-width: 450px) {
+  .auth-card {
+    padding: 25px 20px;
+  }
+}

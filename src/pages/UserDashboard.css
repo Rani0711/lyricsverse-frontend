@@ -1,0 +1,262 @@
+.user-dashboard {
+  width: min(1050px, 90%);
+  margin: 45px auto 80px;
+}
+
+.user-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 35px;
+  border: 1px solid #e6d8fa;
+  border-radius: 24px;
+  background: linear-gradient(120deg, #f0e7ff, #fff 85%);
+}
+
+.user-kicker {
+  color: #8155c7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.user-welcome h1 {
+  margin: 10px 0;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(27px, 4vw, 38px);
+  overflow-wrap: anywhere;
+}
+
+.user-welcome p:last-child {
+  color: #81748f;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: #7044c5;
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.user-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 25px 0 45px;
+}
+
+.user-stats article {
+  padding: 25px;
+  border: 1px solid #e9e0f3;
+  border-radius: 19px;
+  background: white;
+}
+
+.stat-icon {
+  color: #8155d9;
+  font-size: 27px;
+}
+
+.user-stats p {
+  margin-bottom: 8px;
+  color: #81748f;
+  font-size: 14px;
+}
+
+.user-stats h2 {
+  margin: 0;
+  font-size: 32px;
+}
+
+.user-section {
+  margin-bottom: 45px;
+}
+
+.user-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.user-section-heading h2,
+.user-profile h2 {
+  margin: 8px 0;
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.user-outline-button,
+.user-primary-button {
+  padding: 11px 16px;
+  border-radius: 11px;
+  font-weight: 600;
+}
+
+.user-outline-button {
+  border: 1px solid #dfd2f2;
+  background: white;
+  color: #6843ad;
+}
+
+.user-primary-button {
+  border: 1px solid #7044c5;
+  background: #7044c5;
+  color: white;
+}
+
+.user-empty {
+  padding: 38px 20px;
+  border: 1px dashed #d8c6ef;
+  border-radius: 20px;
+  background: white;
+  text-align: center;
+}
+
+.user-empty > span {
+  color: #8155d9;
+  font-size: 42px;
+}
+
+.user-empty h3 {
+  color: #302344;
+}
+
+.user-empty p {
+  margin-bottom: 20px;
+  color: #81748f;
+}
+
+.user-song-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.user-song-card {
+  padding: 22px;
+  border: 1px solid #e9e0f3;
+  border-radius: 20px;
+  background: white;
+}
+
+.user-song-art {
+  height: 100px;
+  margin-bottom: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: #f2ebff;
+  color: #8155d9;
+  font-size: 42px;
+}
+
+.user-song-language {
+  color: #8155c7;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.user-song-card h3 {
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.user-song-card > p {
+  color: #81748f;
+  font-size: 14px;
+}
+
+.user-song-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.user-song-actions button {
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #7044c5;
+  font-weight: 700;
+}
+
+.user-song-actions .remove-favourite {
+  color: #d24770;
+  font-size: 23px;
+}
+
+.user-profile {
+  padding: 28px;
+  border: 1px solid #e9e0f3;
+  border-radius: 20px;
+  background: white;
+}
+
+.profile-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0eaf7;
+  font-size: 14px;
+}
+
+.profile-row span {
+  color: #81748f;
+}
+
+.profile-row strong {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.user-profile > button {
+  margin-top: 20px;
+}
+
+@media (max-width: 600px) {
+  .user-welcome {
+    padding: 23px;
+  }
+
+  .user-avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .user-stats {
+    gap: 12px;
+  }
+
+  .user-stats article {
+    padding: 18px;
+  }
+
+  .user-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-song-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .profile-row strong {
+    text-align: left;
+  }
+}

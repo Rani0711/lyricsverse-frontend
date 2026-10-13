@@ -1,0 +1,72 @@
+.lyrics-page {
+  width: min(800px, 90%);
+  margin: 40px auto 80px;
+}
+
+.back-link {
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  color: #7044c5;
+  font-weight: 700;
+}
+
+.lyrics-sheet {
+  margin-top: 25px;
+  padding: clamp(25px, 6vw, 55px);
+  border: 1px solid #e9e0f3;
+  border-radius: 25px;
+  background: white;
+  box-shadow: 0 15px 50px #462a6e12;
+}
+
+.lyrics-cover {
+  width: 85px;
+  height: 85px;
+  margin-bottom: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #eee3ff, #faf4ff);
+  color: #8155d9;
+  font-size: 45px;
+}
+
+.lyrics-sheet h1 {
+  margin: 12px 0;
+  color: #302344;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(30px, 5vw, 45px);
+  overflow-wrap: anywhere;
+}
+
+.lyrics-sheet h2 {
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.lyrics-byline {
+  color: #81748f;
+}
+
+.lyrics-divider {
+  height: 1px;
+  margin: 28px 0;
+  background: #e9e0f3;
+}
+
+.lyrics-content {
+  margin: 25px 0 32px;
+  color: #493b58;
+  font-size: 16px;
+  line-height: 2.1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.song-tag {
+  color: #8155c7;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
