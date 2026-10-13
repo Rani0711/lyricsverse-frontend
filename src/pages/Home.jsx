@@ -11,15 +11,6 @@ const PREFERRED_LANGUAGES = [
   "Malayalam",
 ];
 
-function getMovieName(song) {
-  return String(song.movieName || song.movie_name || "").trim();
-}
-
-function getSongType(song) {
-  const type = String(song.songType || song.song_type || "").toUpperCase();
-  return type || (getMovieName(song) ? "MOVIE" : "PRIVATE");
-}
-
 function Home({ navigate, onOpenLyrics }) {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +31,7 @@ function Home({ navigate, onOpenLyrics }) {
     ? `lyricsverse_favorites_${user.email.toLowerCase()}`
     : null;
 
+  // Load songs from the backend.
   useEffect(() => {
     let active = true;
 
@@ -56,11 +48,14 @@ function Home({ navigate, onOpenLyrics }) {
       } catch (err) {
         if (active) {
           setError(
-            "Unable to load songs. Please try again in a moment."
+            err.message ||
+              "Unable to load songs. Please try again."
           );
         }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
@@ -71,6 +66,7 @@ function Home({ navigate, onOpenLyrics }) {
     };
   }, []);
 
+  // Load this user's saved favourites.
   useEffect(() => {
     if (!favoriteKey) {
       setFavorites([]);
@@ -78,7 +74,10 @@ function Home({ navigate, onOpenLyrics }) {
     }
 
     try {
-      const saved = JSON.parse(localStorage.getItem(favoriteKey) || "[]");
+      const saved = JSON.parse(
+        localStorage.getItem(favoriteKey) || "[]"
+      );
+
       setFavorites(Array.isArray(saved) ? saved : []);
     } catch {
       setFavorites([]);
@@ -86,7 +85,7 @@ function Home({ navigate, onOpenLyrics }) {
   }, [favoriteKey]);
 
   const favoriteIds = useMemo(
-    () => new Set(favorites.map((song) => String(song.id))),
+    () => new Set(favorites.map((item) => String(item.id))),
     [favorites]
   );
 
@@ -97,16 +96,19 @@ function Home({ navigate, onOpenLyrics }) {
       return;
     }
 
-    const isFavorite = favoriteIds.has(String(song.id));
+    const alreadyFavorite = favoriteIds.has(String(song.id));
 
-    const updated = isFavorite
-      ? favorites.filter((item) => String(item.id) !== String(song.id))
+    const updated = alreadyFavorite
+      ? favorites.filter(
+          (item) => String(item.id) !== String(song.id)
+        )
       : [...favorites, song];
 
     setFavorites(updated);
     localStorage.setItem(favoriteKey, JSON.stringify(updated));
   }
 
+  // Search song title, artist, language, movie name and song type.
   const filteredSongs = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -115,16 +117,20 @@ function Home({ navigate, onOpenLyrics }) {
         .trim()
         .toLowerCase();
 
+      const selectedLanguage = language.toLowerCase();
+
       const matchesLanguage =
         language === "All" ||
-        songLanguage === language.toLowerCase();
+        songLanguage === selectedLanguage;
 
       const searchableFields = [
         song.title,
         song.artist,
         song.language,
-        getMovieName(song),
-        getSongType(song),
+        song.movieName,
+        song.movie_name,
+        song.songType,
+        song.song_type,
       ];
 
       const matchesSearch =
@@ -137,16 +143,21 @@ function Home({ navigate, onOpenLyrics }) {
     });
   }, [songs, search, language]);
 
+  // Group matching songs by language.
   const groupedSongs = useMemo(() => {
     const groups = new Map();
 
     filteredSongs.forEach((song) => {
-      const actualLanguage = String(song.language || "Other").trim() || "Other";
-      const key = actualLanguage.toLowerCase();
+      const actualLanguage = String(
+        song.language || "Other"
+      ).trim();
+
+      const languageName = actualLanguage || "Other";
+      const key = languageName.toLowerCase();
 
       if (!groups.has(key)) {
         groups.set(key, {
-          name: actualLanguage,
+          name: languageName,
           songs: [],
         });
       }
@@ -158,17 +169,38 @@ function Home({ navigate, onOpenLyrics }) {
       const aIndex = PREFERRED_LANGUAGES.findIndex(
         (item) => item.toLowerCase() === a.name.toLowerCase()
       );
+
       const bIndex = PREFERRED_LANGUAGES.findIndex(
         (item) => item.toLowerCase() === b.name.toLowerCase()
       );
 
-      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1 && bIndex !== -1) {
+        return aIndex - bIndex;
+      }
+
       if (aIndex !== -1) return -1;
       if (bIndex !== -1) return 1;
 
       return a.name.localeCompare(b.name);
     });
   }, [filteredSongs]);
+
+  const extraLanguages = useMemo(() => {
+    return [
+      ...new Set(
+        songs
+          .map((song) => String(song.language || "").trim())
+          .filter(Boolean)
+          .filter(
+            (item) =>
+              !PREFERRED_LANGUAGES.some(
+                (preferred) =>
+                  preferred.toLowerCase() === item.toLowerCase()
+              )
+          )
+      ),
+    ];
+  }, [songs]);
 
   return (
     <main className="home-page">
@@ -189,6 +221,7 @@ function Home({ navigate, onOpenLyrics }) {
 
           <div className="hero-actions">
             <button
+              type="button"
               className="primary-button"
               onClick={() =>
                 document
@@ -201,6 +234,7 @@ function Home({ navigate, onOpenLyrics }) {
 
             {!user && (
               <button
+                type="button"
                 className="secondary-button"
                 onClick={() => navigate("login")}
               >
@@ -217,7 +251,7 @@ function Home({ navigate, onOpenLyrics }) {
             <p className="section-label">THE COLLECTION</p>
             <h2>Explore the Library</h2>
             <p className="section-description">
-              Find songs by title, artist, movie, or language.
+              Search by song, artist, language or movie name.
             </p>
           </div>
 
@@ -231,15 +265,17 @@ function Home({ navigate, onOpenLyrics }) {
           <input
             type="search"
             className="song-search"
-            placeholder="Search song, artist, movie or language..."
+            placeholder="Search song, artist, language or movie..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
+            aria-label="Search songs by title, artist, language or movie"
           />
 
           <select
             className="language-select"
             value={language}
             onChange={(event) => setLanguage(event.target.value)}
+            aria-label="Filter songs by language"
           >
             <option value="All">All Languages</option>
 
@@ -249,18 +285,7 @@ function Home({ navigate, onOpenLyrics }) {
               </option>
             ))}
 
-            {[...new Set(
-              songs
-                .map((song) => String(song.language || "").trim())
-                .filter(Boolean)
-                .filter(
-                  (item) =>
-                    !PREFERRED_LANGUAGES.some(
-                      (preferred) =>
-                        preferred.toLowerCase() === item.toLowerCase()
-                    )
-                )
-            )].map((item) => (
+            {extraLanguages.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
@@ -276,6 +301,7 @@ function Home({ navigate, onOpenLyrics }) {
           <div className="library-message error-message">
             <p>{error}</p>
             <button
+              type="button"
               className="primary-button"
               onClick={() => window.location.reload()}
             >
@@ -287,7 +313,22 @@ function Home({ navigate, onOpenLyrics }) {
         {!loading && !error && filteredSongs.length === 0 && (
           <div className="library-message">
             <h3>No songs found</h3>
-            <p>Try another search or select a different language.</p>
+            <p>
+              Try another search, check the movie name, or select
+              All Languages.
+            </p>
+            {search && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => {
+                  setSearch("");
+                  setLanguage("All");
+                }}
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         )}
 
@@ -300,18 +341,32 @@ function Home({ navigate, onOpenLyrics }) {
               >
                 <div className="language-section-heading">
                   <div>
-                    <p className="section-label">EXPLORE BY LANGUAGE</p>
+                    <p className="section-label">
+                      EXPLORE BY LANGUAGE
+                    </p>
                     <h2>{group.name} Songs</h2>
                   </div>
 
-                  <span className="song-count">{group.songs.length}</span>
+                  <span className="song-count">
+                    {group.songs.length}
+                  </span>
                 </div>
 
                 <div className="song-grid">
                   {group.songs.map((song) => {
-                    const isFavorite = favoriteIds.has(String(song.id));
-                    const movieName = getMovieName(song);
-                    const songType = getSongType(song);
+                    const isFavorite = favoriteIds.has(
+                      String(song.id)
+                    );
+
+                    const movieName =
+                      song.movieName || song.movie_name || "";
+
+                    const songType =
+                      song.songType || song.song_type || "";
+
+                    const isMovieSong =
+                      songType.toUpperCase() === "MOVIE" ||
+                      songType.toUpperCase() === "MOVIE SONG";
 
                     return (
                       <article className="song-card" key={song.id}>
@@ -342,13 +397,20 @@ function Home({ navigate, onOpenLyrics }) {
                         </div>
 
                         <h3>{song.title}</h3>
+
                         <p className="song-artist">
                           {song.artist || "Unknown Artist"}
                         </p>
 
-                        {songType === "MOVIE" && movieName && (
-                          <p className="song-artist">
+                        {isMovieSong && movieName && (
+                          <p className="song-movie">
                             Movie: {movieName}
+                          </p>
+                        )}
+
+                        {!isMovieSong && (
+                          <p className="song-movie">
+                            Private Song
                           </p>
                         )}
 
