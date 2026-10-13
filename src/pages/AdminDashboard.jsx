@@ -7,6 +7,8 @@ const EMPTY_SONG = {
   artist: "",
   language: "Telugu",
   lyrics: "",
+  songType: "MOVIE",
+  movieName: "",
 };
 
 const LANGUAGES = [
@@ -19,6 +21,15 @@ const LANGUAGES = [
   "Other",
 ];
 
+function getSongType(item) {
+  const value = item.songType || item.song_type || "PRIVATE";
+  return String(value).toUpperCase() === "MOVIE" ? "MOVIE" : "PRIVATE";
+}
+
+function getMovieName(item) {
+  return item.movieName || item.movie_name || "";
+}
+
 export default function AdminDashboard({ token, navigate }) {
   const [song, setSong] = useState(EMPTY_SONG);
   const [songs, setSongs] = useState([]);
@@ -30,6 +41,7 @@ export default function AdminDashboard({ token, navigate }) {
 
   async function loadSongs() {
     setListLoading(true);
+    setError("");
 
     try {
       const data = await api.getSongs();
@@ -47,7 +59,14 @@ export default function AdminDashboard({ token, navigate }) {
 
   function updateSong(event) {
     const { name, value } = event.target;
-    setSong((previous) => ({ ...previous, [name]: value }));
+
+    setSong((previous) => ({
+      ...previous,
+      [name]: value,
+      ...(name === "songType" && value === "PRIVATE"
+        ? { movieName: "" }
+        : {}),
+    }));
   }
 
   function startEditing(item) {
@@ -57,6 +76,8 @@ export default function AdminDashboard({ token, navigate }) {
       artist: item.artist || "",
       language: item.language || "Telugu",
       lyrics: item.lyrics || "",
+      songType: getSongType(item),
+      movieName: getMovieName(item),
     });
 
     setMessage("");
@@ -82,11 +103,26 @@ export default function AdminDashboard({ token, navigate }) {
         throw new Error("Please log in again to continue.");
       }
 
+      if (song.songType === "MOVIE" && !song.movieName.trim()) {
+        throw new Error("Please enter the movie name.");
+      }
+
+      const payload = {
+        ...song,
+        title: song.title.trim(),
+        artist: song.artist.trim(),
+        language: song.language.trim(),
+        lyrics: song.lyrics,
+        songType: song.songType,
+        movieName:
+          song.songType === "MOVIE" ? song.movieName.trim() : null,
+      };
+
       if (editingId !== null) {
-        await api.updateSong(editingId, song, token);
+        await api.updateSong(editingId, payload, token);
         setMessage("Song updated successfully!");
       } else {
-        await api.addSong(song, token);
+        await api.addSong(payload, token);
         setMessage("Song added successfully!");
       }
 
@@ -94,9 +130,7 @@ export default function AdminDashboard({ token, navigate }) {
       setSong(EMPTY_SONG);
       await loadSongs();
     } catch (err) {
-      setError(
-        err.message || "Operation failed. Check your admin permissions."
-      );
+      setError(err.message || "Operation failed. Check your admin permissions.");
     } finally {
       setLoading(false);
     }
@@ -188,6 +222,35 @@ export default function AdminDashboard({ token, navigate }) {
               ))}
             </select>
           </div>
+
+          <div className="admin-field">
+            <label htmlFor="songType">Song type</label>
+            <select
+              id="songType"
+              name="songType"
+              value={song.songType}
+              onChange={updateSong}
+              required
+            >
+              <option value="MOVIE">Movie Song</option>
+              <option value="PRIVATE">Private Song / Non-movie</option>
+            </select>
+          </div>
+
+          {song.songType === "MOVIE" && (
+            <div className="admin-field">
+              <label htmlFor="movieName">Movie name</label>
+              <input
+                id="movieName"
+                name="movieName"
+                value={song.movieName}
+                onChange={updateSong}
+                placeholder="Enter movie name"
+                maxLength={255}
+                required
+              />
+            </div>
+          )}
         </div>
 
         <div className="admin-field">
@@ -197,7 +260,7 @@ export default function AdminDashboard({ token, navigate }) {
             name="lyrics"
             value={song.lyrics}
             onChange={updateSong}
-            placeholder="Enter the lyrics here..."
+            placeholder="Enter lyrics or text you have permission to use..."
             rows={12}
             maxLength={100000}
             required
@@ -261,7 +324,10 @@ export default function AdminDashboard({ token, navigate }) {
                 <div className="admin-song-info">
                   <h3>{item.title}</h3>
                   <p>
-                    {item.artist} · {item.language}
+                    {item.artist} · {item.language} ·{" "}
+                    {getSongType(item) === "MOVIE"
+                      ? getMovieName(item) || "Movie"
+                      : "Private Song"}
                   </p>
                 </div>
 
@@ -298,4 +364,3 @@ export default function AdminDashboard({ token, navigate }) {
     </section>
   );
 }
-

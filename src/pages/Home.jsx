@@ -11,6 +11,15 @@ const PREFERRED_LANGUAGES = [
   "Malayalam",
 ];
 
+function getMovieName(song) {
+  return String(song.movieName || song.movie_name || "").trim();
+}
+
+function getSongType(song) {
+  const type = String(song.songType || song.song_type || "").toUpperCase();
+  return type || (getMovieName(song) ? "MOVIE" : "PRIVATE");
+}
+
 function Home({ navigate, onOpenLyrics }) {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +28,14 @@ function Home({ navigate, onOpenLyrics }) {
   const [language, setLanguage] = useState("All");
   const [favorites, setFavorites] = useState([]);
 
-  const user = JSON.parse(sessionStorage.getItem("user") || "null");
+  const user = useMemo(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  }, []);
+
   const favoriteKey = user?.email
     ? `lyricsverse_favorites_${user.email.toLowerCase()}`
     : null;
@@ -40,7 +56,7 @@ function Home({ navigate, onOpenLyrics }) {
       } catch (err) {
         if (active) {
           setError(
-            "Unable to load songs. Please check that the backend is running."
+            "Unable to load songs. Please try again in a moment."
           );
         }
       } finally {
@@ -62,9 +78,7 @@ function Home({ navigate, onOpenLyrics }) {
     }
 
     try {
-      const saved = JSON.parse(
-        localStorage.getItem(favoriteKey) || "[]"
-      );
+      const saved = JSON.parse(localStorage.getItem(favoriteKey) || "[]");
       setFavorites(Array.isArray(saved) ? saved : []);
     } catch {
       setFavorites([]);
@@ -86,9 +100,7 @@ function Home({ navigate, onOpenLyrics }) {
     const isFavorite = favoriteIds.has(String(song.id));
 
     const updated = isFavorite
-      ? favorites.filter(
-          (item) => String(item.id) !== String(song.id)
-        )
+      ? favorites.filter((item) => String(item.id) !== String(song.id))
       : [...favorites, song];
 
     setFavorites(updated);
@@ -107,11 +119,19 @@ function Home({ navigate, onOpenLyrics }) {
         language === "All" ||
         songLanguage === language.toLowerCase();
 
+      const searchableFields = [
+        song.title,
+        song.artist,
+        song.language,
+        getMovieName(song),
+        getSongType(song),
+      ];
+
       const matchesSearch =
         !query ||
-        String(song.title || "").toLowerCase().includes(query) ||
-        String(song.artist || "").toLowerCase().includes(query) ||
-        songLanguage.includes(query);
+        searchableFields.some((field) =>
+          String(field || "").toLowerCase().includes(query)
+        );
 
       return matchesLanguage && matchesSearch;
     });
@@ -121,13 +141,12 @@ function Home({ navigate, onOpenLyrics }) {
     const groups = new Map();
 
     filteredSongs.forEach((song) => {
-      const actualLanguage = String(song.language || "Other").trim();
-      const languageName = actualLanguage || "Other";
-      const key = languageName.toLowerCase();
+      const actualLanguage = String(song.language || "Other").trim() || "Other";
+      const key = actualLanguage.toLowerCase();
 
       if (!groups.has(key)) {
         groups.set(key, {
-          name: languageName,
+          name: actualLanguage,
           songs: [],
         });
       }
@@ -143,9 +162,7 @@ function Home({ navigate, onOpenLyrics }) {
         (item) => item.toLowerCase() === b.name.toLowerCase()
       );
 
-      if (aIndex !== -1 && bIndex !== -1) {
-        return aIndex - bIndex;
-      }
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
       if (aIndex !== -1) return -1;
       if (bIndex !== -1) return 1;
 
@@ -200,7 +217,7 @@ function Home({ navigate, onOpenLyrics }) {
             <p className="section-label">THE COLLECTION</p>
             <h2>Explore the Library</h2>
             <p className="section-description">
-              Find your next favourite song.
+              Find songs by title, artist, movie, or language.
             </p>
           </div>
 
@@ -214,7 +231,7 @@ function Home({ navigate, onOpenLyrics }) {
           <input
             type="search"
             className="song-search"
-            placeholder="Search song, artist or language..."
+            placeholder="Search song, artist, movie or language..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -225,11 +242,13 @@ function Home({ navigate, onOpenLyrics }) {
             onChange={(event) => setLanguage(event.target.value)}
           >
             <option value="All">All Languages</option>
+
             {PREFERRED_LANGUAGES.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
             ))}
+
             {[...new Set(
               songs
                 .map((song) => String(song.language || "").trim())
@@ -285,16 +304,14 @@ function Home({ navigate, onOpenLyrics }) {
                     <h2>{group.name} Songs</h2>
                   </div>
 
-                  <span className="song-count">
-                    {group.songs.length}
-                  </span>
+                  <span className="song-count">{group.songs.length}</span>
                 </div>
 
                 <div className="song-grid">
                   {group.songs.map((song) => {
-                    const isFavorite = favoriteIds.has(
-                      String(song.id)
-                    );
+                    const isFavorite = favoriteIds.has(String(song.id));
+                    const movieName = getMovieName(song);
+                    const songType = getSongType(song);
 
                     return (
                       <article className="song-card" key={song.id}>
@@ -329,6 +346,12 @@ function Home({ navigate, onOpenLyrics }) {
                           {song.artist || "Unknown Artist"}
                         </p>
 
+                        {songType === "MOVIE" && movieName && (
+                          <p className="song-artist">
+                            Movie: {movieName}
+                          </p>
+                        )}
+
                         <button
                           type="button"
                           className="open-lyrics-button"
@@ -350,8 +373,3 @@ function Home({ navigate, onOpenLyrics }) {
 }
 
 export default Home;
-
-
-
-
-
